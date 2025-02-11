@@ -1,4 +1,5 @@
 import tkinter as tk
+from time import sleep
 
 
 class Field:
@@ -85,7 +86,23 @@ class GameWindow():
     def gameloop(self, result):
         if result:
             print(result)
-        print(self.field.winner)
+            if result[2] == "Horizontal":
+                for i in range(self.size):
+                    self.field.btns[result[1]][i]["bg"] = "red"
+            elif result[2] == "Vertical":
+                for i in range(self.size):
+                    self.field.btns[i][result[1]]["bg"] = "red"
+            elif result[2] == "LeftUp":
+                for i in range(self.size):
+                    self.field.btns[i][i]["bg"] = "red"
+            elif result[2] == "LeftDown":
+                for i in range(self.size):
+                    self.field.btns[i][self.size-i-1]["bg"] = "red"
+            self.root.update()
+            #self.root.after(2000, self.field.field_reset)
+            sleep(2)
+            self.field.field_reset()
+
 
 
 if __name__ == "__main__":
