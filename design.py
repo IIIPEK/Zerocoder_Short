@@ -3,7 +3,7 @@ from tkinter import messagebox as mb
 import platform
 
 class Field:
-    def __init__(self, window, font=("Arial", 20),width=5, height=2, size=3, callback=None):
+    def __init__(self, window, font=("Arial", 20),width=5, height=2, size=3, callback=None, order = ["X", "O"]):
         self.size = size
         self.window = window
         self.btns = []
@@ -11,7 +11,7 @@ class Field:
         self.btn_width = width
         self.btn_height = height
         self.checked = 0
-        self.sign = ["X", "O"]
+        self.sign = order
         self.winner = None
         self.callback = callback
         self.result = None
@@ -24,7 +24,7 @@ class Field:
             ver = "".join([self.btns[j][i]["text"] for j in range(3)])
             if hor == self.sign[0] * self.size or hor == self.sign[1] * self.size:
                 return hor[0],i,"Horizontal"
-            elif ver == self.sign[0] * self.size or hor == self.sign[1] * self.size:
+            elif ver == self.sign[0] * self.size or ver == self.sign[1] * self.size:
                 return ver[0],i,"Vertical"
 
         diag =  "".join([self.btns[j][j]["text"] for j in range(self.size)])
@@ -74,6 +74,8 @@ class Field:
     def field_reset(self):
         self.pause = None
         self.result = None
+        if self.checked % 2 == 0:
+            self.sign = [self.sign[1], self.sign[0]]
         self.checked = 0
         for i in range(self.size):
             for j in range(self.size):
@@ -83,17 +85,17 @@ class Field:
                     self.btns[i][j].config(bg="lightgrey", activebackground="lightgrey")
                 print("|"+self.btns[i][j]["text"], end="" )
             print("|")
-        self.sign = [self.sign[1], self.sign[0]]
+
         self.window.update()
 
     def show_result(self):
         if self.result:
             if self.result[2] == "Horizontal":
                 for i in range(self.size):
-                    self.btns[result[1]][i]["bg"] = "red"
+                    self.btns[self.result[1]][i]["bg"] = "red"
             elif self.result[2] == "Vertical":
                 for i in range(self.size):
-                    self.btns[i][result[1]]["bg"] = "red"
+                    self.btns[i][self.result[1]]["bg"] = "red"
             elif self.result[2] == "LeftUp":
                 for i in range(self.size):
                     self.btns[i][i]["bg"] = "red"
@@ -113,7 +115,7 @@ class  Scores():
         self.scores = {"X":0,"O":0}
         self.round = 0
         self.rounds = rounds
-        self.info = tk.Label(self.window,text=f"Счет X:{self.scores["X"]} O:{self.scores["O"]}" )
+        self.info = tk.Label(self.window,text=f"Счет X:{self.scores["X"]}  😎  O:{self.scores["O"]}",  font=("Arial", 12) )
         self.info.pack()
 
     def scores_update(self,player = None):
@@ -121,6 +123,25 @@ class  Scores():
             self.scores[player]+=1
             self.info["text"] =f"Счет X:{self.scores["X"]} O:{self.scores["O"]}"
 
+class ResultWindow():
+    def __init__(self, window=None, msg=None, geometry = "300x150", font=("Arial", 18)):
+        self.wnd_result = tk.Toplevel(window)
+        self.wnd_result.title(msg[0])
+        self.message = msg[1]
+        self.geometry = geometry
+        self.font = font
+        self.wnd_result.geometry(self.geometry)
+        self.wnd_result.resizable(False, False)
+        self.lbl = tk.Label(self.wnd_result, text=self.message, font=self.font)
+        self.lbl.pack(pady=20)
+        btn_ok = tk.Button(self.wnd_result, text="OK", command=self.wnd_result.destroy, font=self.font )
+        btn_ok.pack()
+        self.wnd_result.transient(window)  # Привязываем к главному окну
+        self.wnd_result.grab_set()  # Блокируем события для главного окна
+        self.wnd_result.focus_set()  # Фокус на модальном окне
+        self.wnd_result.update_idletasks()
+
+        self.wnd_result.wait_window()
 
 
 
@@ -139,7 +160,7 @@ class GameWindow():
     def gameloop(self, result):
         if result:
             print(result)
-            msg = "Победа!", f"Победитель: {result[0]}"
+            msg = "🥳 Победа! ", f"🎉 Победитель: {result[0]} 👏"
             # if result[2] == "Horizontal":
             #     for i in range(self.size):
             #         self.field.btns[result[1]][i]["bg"] = "red"
@@ -153,12 +174,14 @@ class GameWindow():
             #     for i in range(self.size):
             #         self.field.btns[i][self.size-i-1]["bg"] = "red"
             if result[2] == "Draw":
-                msg = "Ничья!"
+                msg = "Ничья! 🤔","🔥 Ничья! 🔥"
             self.field.pause = True
             self.field.show_result()
             self.frm_header.scores_update(result[0])
             self.root.update()
-            mb.showinfo(msg)
+            result_window = ResultWindow(root,msg)
+
+            #mb.showinfo(msg[0],msg[1])
             self.field.field_reset()
             #self.root.after(2000, self.field.field_reset)
             #sleep(2)
@@ -170,6 +193,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("test")
     root.geometry("300x350")
+    root.resizable(False, False)
     window = GameWindow(root)
     # field = Field(root)
     # field.field_fill()
