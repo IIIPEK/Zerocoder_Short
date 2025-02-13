@@ -142,10 +142,10 @@ class ResultWindow():
     def __init__(self, window=None, msg=None, geometry = "300x150", font=("Arial", 18)):
         self.wnd_result = tk.Toplevel(window)
         self.wnd_result.title(msg[0])
-        self.message = msg[1]
         self.geometry = geometry
         self.font = font
         self.wnd_result.geometry(self.geometry)
+        self.message = msg[1]
         self.wnd_result.resizable(False, False)
         self.lbl = tk.Label(self.wnd_result, text=self.message, font=self.font)
         self.lbl.pack(pady=20)
@@ -155,7 +155,13 @@ class ResultWindow():
         self.wnd_result.grab_set()  # Блокируем события для главного окна
         self.wnd_result.focus_set()  # Фокус на модальном окне
         self.wnd_result.update_idletasks()
-
+        root_x = window.winfo_x()
+        root_y = window.winfo_y()
+        root_w = window.winfo_width()
+        root_h = window.winfo_height()
+        self.x = root_x + (root_w // 2) - (self.wnd_result.winfo_width() // 2)
+        self.y = root_y # + (root_h // 2) - (self.wnd_result.winfo_height() // 2)
+        self.wnd_result.geometry(f"+{self.x}+{self.y}")
         self.wnd_result.wait_window()
 
 
