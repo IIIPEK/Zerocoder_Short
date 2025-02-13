@@ -109,19 +109,37 @@ class Field:
 
 
 class  Scores():
-    def __init__(self, window = None, rounds = 10):
+    def __init__(self, window = None, rounds = 2, reset_callback = None):
         self.window = window
         self.frm_scores = tk.Frame(self.window)
         self.scores = {"X":0,"O":0}
-        self.round = 0
+        self.round = 1
         self.rounds = rounds
-        self.info = tk.Label(self.window,text=f"Счет X:{self.scores["X"]}  😎  O:{self.scores["O"]}",  font=("Arial", 12) )
-        self.info.pack()
+        self.reset_callback = reset_callback
+        self.lbl_info = tk.Label(self.window,text=f"Счет X:{self.scores["X"]}  😎  O:{self.scores["O"]}",  font=("Arial", 12) )
+        self.lbl_info.pack()
+        self.lbl_rounds = tk.Label(self.window, text=f"Раунд {self.round} из {self.rounds}", font=("Arial", 12) )
+        self.lbl_rounds.pack()
+        self.btn_reset = tk.Button(self.window, text="🔄 Сброс игры 🔄 ", font=("Arial", 12), command=self.reset)
+        self.btn_reset.pack(pady=10)
+
+    def reset(self):
+        self.scores = {"X":0,"O":0}
+        self.round = 0
+        self.scores_update()
+        self.window.update()
+        self.reset_callback()
+
+
+
 
     def scores_update(self,player = None):
         if player in ["X","O"]:
             self.scores[player]+=1
-            self.info["text"] =f"Счет X:{self.scores["X"]} O:{self.scores["O"]}"
+        self.lbl_info["text"] = f"Счет X:{self.scores['X']}  😎  O:{self.scores['O']}"
+        self.round += 1
+        self.lbl_rounds["text"] = f"Раунд {self.round} из {self.rounds}"
+
 
 class ResultWindow():
     def __init__(self, window=None, msg=None, geometry = "300x150", font=("Arial", 18)):
@@ -146,33 +164,23 @@ class ResultWindow():
 
 
 class GameWindow():
-    def __init__(self,root, size=3):
+    def __init__(self,root, size=3, icon="./img/ttt-67px.png"):
         self.size = size
         self.root = root
-        self.frm_header = Scores(self.root)
+        self.frm_header = Scores(self.root, reset_callback=self.reset_game)
         self.frm_field = tk.Frame(root)
+        self.icon = icon
         self.field = Field(self.frm_field, size=self.size, callback=self.gameloop)
         self.frm_field.pack()
         self.frm_field.grid_rowconfigure(0, weight=1)
         self.frm_field.grid_columnconfigure(0, weight=1)
         self.field.field_fill()
+        self.root.iconphoto(True, tk.PhotoImage(file=self.icon))
 
     def gameloop(self, result):
         if result:
             print(result)
             msg = "🥳 Победа! ", f"🎉 Победитель: {result[0]} 👏"
-            # if result[2] == "Horizontal":
-            #     for i in range(self.size):
-            #         self.field.btns[result[1]][i]["bg"] = "red"
-            # elif result[2] == "Vertical":
-            #     for i in range(self.size):
-            #         self.field.btns[i][result[1]]["bg"] = "red"
-            # elif result[2] == "LeftUp":
-            #     for i in range(self.size):
-            #         self.field.btns[i][i]["bg"] = "red"
-            # elif result[2] == "LeftDown":
-            #     for i in range(self.size):
-            #         self.field.btns[i][self.size-i-1]["bg"] = "red"
             if result[2] == "Draw":
                 msg = "Ничья! 🤔","🔥 Ничья! 🔥"
             self.field.pause = True
@@ -180,19 +188,31 @@ class GameWindow():
             self.frm_header.scores_update(result[0])
             self.root.update()
             result_window = ResultWindow(root,msg)
+            if self.frm_header.round > self.frm_header.rounds:
+                if self.frm_header.scores["X"] > self.frm_header.scores["O"]:
+                   text = f"🎉 Победил X : {result[0]} :{result[1]} : O 👏"
+                elif self.frm_header.scores["X"] < self.frm_header.scores["O"]:
+                   text = f"🎉 Победил O : {result[1]} : {result[0]} : X 👏"
+                else:
+                   text = f"🎉 Ничья X : {result[0]} :{result[1]} : O 👏"
+                msg = "🥳 Игра окончена! ", text
+                result_window = ResultWindow(root,msg)
+                self.frm_header.reset()
 
-            #mb.showinfo(msg[0],msg[1])
             self.field.field_reset()
-            #self.root.after(2000, self.field.field_reset)
-            #sleep(2)
+
+    def reset_game(self):
+        self.field.field_reset()
+        self.field.pause = False
+
 
 
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("test")
-    root.geometry("300x350")
+    root.title("Крестики-нолики")
+    root.geometry("300x380")
     root.resizable(False, False)
     window = GameWindow(root)
     # field = Field(root)
