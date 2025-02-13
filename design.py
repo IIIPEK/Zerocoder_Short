@@ -36,7 +36,6 @@ class Field:
         return None
 
     def on_click(self,r,c):
-        print(self.pause)
         if self.pause:
             return
         if self.btns[r][c]["text"] != " ":
@@ -83,8 +82,6 @@ class Field:
                     self.btns[i][j].config(bg="SystemButtonFace", activebackground="SystemButtonFace", text =" ")
                 else:
                     self.btns[i][j].config(bg="lightgrey", activebackground="lightgrey")
-                print("|"+self.btns[i][j]["text"], end="" )
-            print("|")
 
         self.window.update()
 
@@ -164,10 +161,11 @@ class ResultWindow():
 
 
 class GameWindow():
-    def __init__(self,root, size=3, icon="./img/ttt-67px.png"):
+    def __init__(self,root, size=3, rounds=10, icon="./img/ttt-67px.png"):
         self.size = size
         self.root = root
-        self.frm_header = Scores(self.root, reset_callback=self.reset_game)
+        self.rounds = rounds
+        self.frm_header = Scores(self.root, reset_callback=self.reset_game, rounds=self.rounds)
         self.frm_field = tk.Frame(root)
         self.icon = icon
         self.field = Field(self.frm_field, size=self.size, callback=self.gameloop)
@@ -179,7 +177,6 @@ class GameWindow():
 
     def gameloop(self, result):
         if result:
-            print(result)
             msg = "🥳 Победа! ", f"🎉 Победитель: {result[0]} 👏"
             if result[2] == "Draw":
                 msg = "Ничья! 🤔","🔥 Ничья! 🔥"
@@ -187,7 +184,7 @@ class GameWindow():
             self.field.show_result()
             self.frm_header.scores_update(result[0])
             self.root.update()
-            result_window = ResultWindow(root,msg)
+            result_window = ResultWindow(self.root,msg)
             if self.frm_header.round > self.frm_header.rounds:
                 if self.frm_header.scores["X"] > self.frm_header.scores["O"]:
                    text = f"🎉 Победил X : {result[0]} :{result[1]} : O 👏"
