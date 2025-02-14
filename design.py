@@ -199,7 +199,7 @@ class GameWindow():
                 else:
                    text = f"🎉 Ничья X : {result[0]} :{result[1]} : O 👏"
                 msg = "🥳 Игра окончена! ", text
-                result_window = ResultWindow(root,msg)
+                result_window = ResultWindow(self.root,msg)
                 self.frm_header.reset()
 
             self.field.field_reset()
